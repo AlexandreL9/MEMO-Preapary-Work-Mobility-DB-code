@@ -71,7 +71,7 @@ As we need a time reference for the table partioning we will use the timestamp o
     CREATE TABLE firstTimestamp(
     mmsi integer,
     t timestamp without time zone);
-    
+   
     INSERT INTO firstTimestamp
     SELECT mmsi, min(T)
     from AISInputFiltered
@@ -86,7 +86,7 @@ As we need a time reference for the table partioning we will use the timestamp o
     tfloatseq(array_agg(tfloatinst(aisf.COG, aisf.T) ORDER BY aisf.T) FILTER (WHERE aisf.COG IS NOT NULL))
     FROM AISInputFiltered as aisf
     GROUP BY aisf.MMSI;
-    
+   
     ALTER TABLE Ships ADD COLUMN Traj geometry;
     UPDATE Ships SET Traj= ST_SetSRID(trajectory(Trip), 4326);
 
@@ -106,8 +106,7 @@ Approx 400 rows/partition
     COG tfloat,
     traj geometry
     )PARTITION BY RANGE(t);
-    
-    
+   
     CREATE TABLE Ships_P_0_04 PARTITION OF Ships_P_
        FOR VALUES FROM ('2017-06-23 00:00:00') TO ('2017-06-23 00:00:04');
     CREATE TABLE Ships_P_04_10 PARTITION OF Ships_P_
@@ -145,9 +144,9 @@ Use **Ships** for non partitioned
 
 Return the list of ships that visited a rectange around the city of Kolding
 
-    SELECT mmsi from AISInputfiltered_1 where ST_Intersects(geom, ST_SetSRID(geometry 'Polygon((9 55.2, 9 55.8
+    SELECT mmsi from Ships where ST_Intersects(traj, ST_SetSRID(geometry 'Polygon((9 55.2, 9 55.8
     ,10 55.8,10 55.2,9 55.2))', 4326))
-
+    
 ### Temporal query
 Count the number of trips that were active during each hour after 12h in June 23, 2017
 
@@ -183,7 +182,7 @@ First, add three cities in the table points:
     PointId integer PRIMARY KEY,
     Geom Geometry(Point)
     );
-    
+   
     INSERT INTO Points VALUES (1,geometry(ST_SetSRID( ST_Point(55.493752, 9.471496),4326))),
     (2,geometry(ST_SetSRID( ST_Point(55.671823, 12.563272),4326))),
     (3,geometry(ST_SetSRID( ST_Point(56.156662, 10.206493),4326)))
